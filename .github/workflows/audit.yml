@@ -1,0 +1,29 @@
+# YAML file for Security Audit GitHub Actions workflow
+
+# Define the events that will trigger the workflow
+on:
+  # Schedule a daily run of the security audit job at midnight (0 0 * * *)
+  schedule:
+    - cron: '0 0 * * *'
+  # Trigger the security audit job when changes are pushed to the specified files
+  push:
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+
+# Define the jobs to be executed
+jobs:
+  # Define the "security_audit" job
+  security_audit:
+    # Specify the operating system environment for the job
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository to get its contents for the job
+      - uses: actions/checkout@v3
+
+      # Step 2: Install the "cargo-deny" tool for vulnerability scanning
+      - uses: taiki-e/install-action@cargo-deny
+
+      # Step 3: Scan for vulnerabilities using "cargo-deny"
+      - name: Scan for vulnerabilities
+        run: cargo deny check advisories

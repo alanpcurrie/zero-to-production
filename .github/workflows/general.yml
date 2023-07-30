@@ -1,0 +1,95 @@
+# YAML file for Rust GitHub Actions workflow
+
+# Define the events that will trigger the workflow
+on:
+  # Trigger the workflow on both push and pull_request events
+  push:
+  pull_request:
+
+# Define environment variables for the workflow
+env:
+  # Set CARGO_TERM_COLOR to always display colors in the terminal
+  CARGO_TERM_COLOR: always
+
+# Define the jobs to be executed
+jobs:
+  # Define the "test" job
+  test:
+    # Name the job as "Test"
+    name: Test
+    # Specify the operating system environment for the job
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository to get its contents for the job
+      - uses: actions/checkout@v3
+
+      # Step 2: Use the stable Rust toolchain
+      - uses: dtolnay/rust-toolchain@stable
+
+      # Step 3: Cache Rust dependencies to speed up future builds
+      - uses: Swatinem/rust-cache@v2
+
+      # Step 4: Run tests using "cargo test"
+      - name: Run tests
+        run: cargo test
+
+  # Define the "fmt" job
+  fmt:
+    # Name the job as "Rustfmt"
+    name: Rustfmt
+    # Specify the operating system environment for the job
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository to get its contents for the job
+      - uses: actions/checkout@v3
+
+      # Step 2: Use the stable Rust toolchain and install rustfmt component
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      # Step 3: Enforce code formatting using "cargo fmt --check"
+      - name: Enforce formatting
+        run: cargo fmt --check
+
+  # Define the "clippy" job
+  clippy:
+    # Name the job as "Clippy"
+    name: Clippy
+    # Specify the operating system environment for the job
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository to get its contents for the job
+      - uses: actions/checkout@v3
+
+      # Step 2: Use the stable Rust toolchain and install clippy component
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      # Step 3: Cache Rust dependencies to speed up future builds
+      - uses: Swatinem/rust-cache@v2
+
+      # Step 4: Run Clippy linter using "cargo clippy -- -D warnings"
+      - name: Linting
+        run: cargo clippy -- -D warnings
+
+  # Define the "coverage" job
+  coverage:
+    # Name the job as "Code coverage"
+    name: Code coverage
+    # Specify the operating system environment for the job
+    runs-on: ubuntu-latest
+    # Define a Docker container for the job
+    container:
+      image: xd009642/tarpaulin
+      options: --security-opt seccomp=unconfined
+    steps:
+      # Step 1: Checkout the repository to get its contents for the job
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Generate code coverage using "cargo tarpaulin --verbose --workspace"
+      - name: Generate code coverage
+        run: |
+          cargo tarpaulin --verbose --workspace
